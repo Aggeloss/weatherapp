@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { cityController } from './../modules/cityController';
-import { tempController } from './../modules/tempController';
 
 Vue.use(Vuex);
 
