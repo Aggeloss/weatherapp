@@ -42,10 +42,13 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
-            'host' => env('DB_HOST', '127.0.0.1'),
+            // 'host' => env('DB_HOST', '127.0.0.1'),
+            'host' => env('DB_HOST', 'http://weatherapplaravue.herokuapp.com/'),
             'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
+            // 'database' => env('DB_DATABASE', 'forge'),
+            'database' => env('DB_DATABASE', 'weather_app'),
+            // 'username' => env('DB_USERNAME', 'forge'),
+            'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => 'utf8mb4',
