@@ -1834,15 +1834,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       return state.cityController.temperatureList;
     }
   })),
-  methods: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_0__["mapActions"])('cityController', ['loadCities', 'loadChosenCities', 'loadCitiesFromDB', 'sendTemperatureStatsToDB', 'sendCitiesToDB', 'temperatureInfo', 'addItem', 'removeItem']), {
-    tempInfo: function tempInfo(payload) {
-      this.temperatureInfo(payload).then(function () {// this.loadChosenCities();
-      })["catch"](function (err) {
-        console.log(err);
-        throw err;
-      });
-    }
-  }),
+  methods: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_0__["mapActions"])('cityController', ['loadCities', 'loadChosenCities', 'loadCitiesFromDB', 'sendTemperatureStatsToDB', 'sendCitiesToDB', 'temperatureInfo', 'addItem', 'removeItem'])),
   mounted: function mounted() {
     console.log('Component mounted.');
   },
@@ -1853,11 +1845,14 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     this.loadCitiesFromDB().then(function (data) {
       if (_this.cityList.length === 0) {
         _this.loadCities(_this.$http).then(function () {
-          _this.allCities = Object.assign({}, _this.cityList);
+          _this.allCities = Object.assign({}, _this.cityList); //For pagination
 
           _this.sendCitiesToDB();
         });
       }
+    })["catch"](function (err) {
+      console.log(err);
+      throw err;
     });
     this.loadChosenCities();
   }
@@ -37887,7 +37882,7 @@ var render = function() {
                   on: {
                     click: function($event) {
                       $event.preventDefault()
-                      return _vm.tempInfo({
+                      return _vm.temperatureInfo({
                         http: _vm.http,
                         chosenCities: _vm.chosenCityList
                       })
@@ -38008,7 +38003,7 @@ var staticRenderFns = [
         staticClass: "card-header",
         staticStyle: { "background-color": "#fff" }
       },
-      [_c("h3", { staticClass: "card-title" }, [_vm._v("Cities List")])]
+      [_c("h3", { staticClass: "card-title" }, [_vm._v("List Of Cities")])]
     )
   },
   function() {
@@ -53028,7 +53023,6 @@ var cityController = {
     },
     SET_CHOSEN_CITY_LIST: function SET_CHOSEN_CITY_LIST(state, chosenCityList) {
       state.chosenCityList = chosenCityList;
-      console.log(state.chosenCityList);
     },
     SET_TEMPERATURES: function SET_TEMPERATURES(state, payload) {
       payload.city.min_temp = Math.round(payload.data.body.main.temp - 273);
@@ -53039,6 +53033,21 @@ var cityController = {
         return c.id == payload.city.id;
       }));
       vue__WEBPACK_IMPORTED_MODULE_0___default.a.set(state.chosenCityList, index, payload.city);
+    },
+    SET_NOT_FOUND: function SET_NOT_FOUND(state, city) {
+      city.min_temp = null;
+      city.max_temp = null;
+      city.avg_temp = null;
+      city.last_temp = null;
+      axios.post("api/temp", {
+        city: city
+      }, {
+        headers: Object(_config__WEBPACK_IMPORTED_MODULE_1__["getHeader"])()
+      }).then(function () {//
+      })["catch"](function (err) {
+        console.log(err);
+        throw err;
+      });
     },
     ADD_CHOSEN_CITY_LIST: function ADD_CHOSEN_CITY_LIST(state, payload) {
       payload.item['min_temp'] = null;
@@ -53061,32 +53070,34 @@ var cityController = {
       commit('SET_TRIGGERED', true);
 
       _.forEach(payload.chosenCities, function (city) {
-        // this.temperatureInfo({city:city, http:this.$http});
         payload.http.get('https://api.openweathermap.org/data/2.5/weather?q=' + city.capital + ',' + city.alpha2Code + '&APPID=6e70b86f745e5e3964cd165349029ec9', {
           "Access-Control-Allow-Origin": "*",
           "Content-Type": "application/json"
         }).then(function (data) {
-          var payload = {
-            city: city,
-            data: data
-          };
-          commit('SET_TEMPERATURES', payload);
+          if (data.status !== 404) {
+            var payload = {
+              city: city,
+              data: data
+            };
+            commit('SET_TEMPERATURES', payload);
+          }
         }).then(function () {
           axios.post("api/temp", {
             city: city
           }, {
             headers: Object(_config__WEBPACK_IMPORTED_MODULE_1__["getHeader"])()
-          }).then(function () {
-            console.log('Yeahh');
-            commit('SET_TRIGGERED', false); //return state.userList;
+          }).then(function () {//
           })["catch"](function (err) {
             console.log(err);
             throw err;
           });
         }).then(function () {
-          commit('SET_TRIGGERED', false);
-          dispatch('loadChosenCities');
+          if (state.chosenCityList[state.chosenCityList.length - 1] === city) {
+            commit('SET_TRIGGERED', false);
+            dispatch('loadChosenCities');
+          }
         })["catch"](function (err) {
+          commit('SET_NOT_FOUND', city);
           console.log(err);
           throw err;
         });
@@ -53132,7 +53143,6 @@ var cityController = {
           if (window.user.id === value.user_id) temp_chosen_cities.push(value);
         });
 
-        console.log(temp_chosen_cities);
         commit('SET_CHOSEN_CITY_LIST', temp_chosen_cities);
       })["catch"](function (err) {
         console.log(err);
@@ -53147,8 +53157,7 @@ var cityController = {
         list: list
       }, {
         headers: Object(_config__WEBPACK_IMPORTED_MODULE_1__["getHeader"])()
-      }).then(function () {
-        console.log('haa'); //
+      }).then(function () {//
       })["catch"](function (err) {
         console.log(err);
         throw err;
@@ -53160,7 +53169,6 @@ var cityController = {
       return axios.get("api/city", {
         headers: Object(_config__WEBPACK_IMPORTED_MODULE_1__["getHeader"])()
       }).then(function (data) {
-        console.log(data);
         commit('SET_CITY_LIST', data.data);
       })["catch"](function (err) {
         console.log(err);
@@ -53189,8 +53197,7 @@ var cityController = {
           current_item: current_item
         }, {
           headers: Object(_config__WEBPACK_IMPORTED_MODULE_1__["getHeader"])()
-        }).then(function () {
-          console.log('Yeahh'); //return state.userList;
+        }).then(function () {//...
         })["catch"](function (err) {
           commit('REMOVE_CHOSEN_CITY_LIST', id);
           console.log(err);
@@ -53212,8 +53219,7 @@ var cityController = {
       }));
       return axios["delete"]("api/temp/" + id, {
         headers: Object(_config__WEBPACK_IMPORTED_MODULE_1__["getHeader"])()
-      }).then(function (data) {
-        console.log('Yeahh'); //return state.userList;
+      }).then(function (data) {//...
       })["catch"](function (err) {
         if (!_.find(state.chosenCityList, function (c) {
           return c.id == current_item.id;

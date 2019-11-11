@@ -29,10 +29,10 @@ class TemperatureController extends Controller
 
         $temperature_list = [];
 
-        $min_temp = 0;
-        $max_temp = 0;
-        $avg_temp = 0;
-        $last_temp = 0;
+        $min_temp = null;
+        $max_temp = null;
+        $avg_temp = null;
+        $last_temp = null;
 
         $min_temp_numbers = [];
         $max_temp_numbers = [];
@@ -47,16 +47,22 @@ class TemperatureController extends Controller
           foreach ($data_list as $item) {
             array_push($temperature_list, Temperature::find($item->temperature_id));
           }
-
-          $min_temp_numbers = array_column($temperature_list, 'last_temp');
-          if (!empty($min_temp_numbers))
-            $min_temp = min($min_temp_numbers);
-          $max_temp_numbers = array_column($temperature_list, 'last_temp');
-          if (!empty($max_temp_numbers))
-            $max_temp = max($max_temp_numbers);
           if (!empty($temperature_list)) {
+            $min_temp_numbers = array_column($temperature_list, 'last_temp');
+            if (!empty($min_temp_numbers))
+              $min_temp = min($min_temp_numbers);
+            else
+              $min_temp = null;
+            $max_temp_numbers = array_column($temperature_list, 'last_temp');
+            if (!empty($max_temp_numbers))
+              $max_temp = max($max_temp_numbers);
+            else
+              $max_temp = null;
             $avg_temp_numbers = array_column($temperature_list, 'last_temp');
-            $avg_temp = round(array_sum($avg_temp_numbers) / count($avg_temp_numbers));
+            if (count($avg_temp_numbers) != 0)
+              $avg_temp = round(array_sum($avg_temp_numbers) / count($avg_temp_numbers));
+            else
+              $avg_temp = null;
             $last_temp = $temperature_list[sizeof($temperature_list)-1]['last_temp'];
           }
 
@@ -111,8 +117,11 @@ class TemperatureController extends Controller
           $chosenCity = DB::table('chosen_cities')->where('index', $request['city']['id'])->get();
 
           $temp_city = ChosenCity::where('index', $request['city']['id'])->get();
-          $city = ChosenCity::find($temp_city[0]->id);
-          $city->temperature()->attach($temperature->id);
+
+          if(isset($temp_city[0])) {
+            $city = ChosenCity::find($temp_city[0]->id);
+            $city->temperature()->attach($temperature->id);
+          }
         }
     }
 

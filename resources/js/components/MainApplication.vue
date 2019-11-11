@@ -47,7 +47,7 @@
                     </div>
 
                     <div class="card-footer" style="padding: 7px 10px;">
-                      <button type="submit" class="btn btn-primary" :disabled="!!triggered" style="float:right; padding: 5px 7px;" @click.prevent="tempInfo({http: http, chosenCities: chosenCityList})">Temperature Check</button>
+                      <button type="submit" class="btn btn-primary" :disabled="!!triggered" style="float:right; padding: 5px 7px;" @click.prevent="temperatureInfo({http: http, chosenCities: chosenCityList})">Temperature Check</button>
                     </div>
                 </div>
             </div>
@@ -56,7 +56,7 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header" style="background-color: #fff">
-                <h3 class="card-title">Cities List</h3>
+                <h3 class="card-title">List Of Cities</h3>
 
                 <!-- <div class="card-tools">
                   <button class="btn btn-default" @click=""><i class="fas fa-user-plus"></i></button>
@@ -134,16 +134,6 @@
             'addItem',
             'removeItem'
           ]),
-          tempInfo: function(payload) {
-            this.temperatureInfo(payload)
-                .then(() => {
-                   // this.loadChosenCities();
-                })
-                .catch((err) => {
-                   console.log(err)
-                   throw err;
-               });
-          }
         },
         mounted() {
             console.log('Component mounted.')
@@ -155,11 +145,15 @@
                 if(this.cityList.length === 0) {
                   this.loadCities(this.$http)
                     .then(() => {
-                      this.allCities = Object.assign({}, this.cityList);
-                      this.sendCitiesToDB()
+                      this.allCities = Object.assign({}, this.cityList); //For pagination
+                      this.sendCitiesToDB();
                     });
                 }
               })
+              .catch((err) => {
+                 console.log(err)
+                 throw err;
+             });
             this.loadChosenCities();
         }
   }

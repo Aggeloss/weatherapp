@@ -22,15 +22,31 @@ export const cityController = {
       },
       SET_CHOSEN_CITY_LIST(state, chosenCityList) {
         state.chosenCityList = chosenCityList;
-        console.log(state.chosenCityList);
       },
       SET_TEMPERATURES(state, payload) {
         payload.city.min_temp = Math.round(payload.data.body.main.temp-273);
         payload.city.max_temp = Math.round(payload.data.body.main.temp-273);
         payload.city.avg_temp = Math.round(payload.data.body.main.temp-273);
         payload.city.last_temp = Math.round(payload.data.body.main.temp-273);
+
         var index = state.chosenCityList.indexOf(_.find(state.chosenCityList, (c) => { return c.id == payload.city.id }));
+
         Vue.set(state.chosenCityList, index, payload.city);
+      },
+      SET_NOT_FOUND(state, city) {
+        city.min_temp = null;
+        city.max_temp = null;
+        city.avg_temp = null;
+        city.last_temp = null;
+
+        axios.post("api/temp", {city}, {headers: getHeader()})
+               .then(() => {
+                 //
+                })
+               .catch((err) => {
+                 console.log(err)
+                 throw err;
+               });
       },
       ADD_CHOSEN_CITY_LIST(state, payload) {
         payload.item['min_temp'] = null;
@@ -49,21 +65,20 @@ export const cityController = {
         temperatureInfo: ({commit, dispatch, state}, payload) => {
           commit('SET_TRIGGERED', true);
           _.forEach(payload.chosenCities, function(city) {
-              // this.temperatureInfo({city:city, http:this.$http});
             payload.http.get('https://api.openweathermap.org/data/2.5/weather?q=' + city.capital + ',' + city.alpha2Code + '&APPID=6e70b86f745e5e3964cd165349029ec9', {
                     "Access-Control-Allow-Origin": "*",
                     "Content-Type": "application/json"
                   })
                   .then((data) => {
-                    var payload = { city: city, data: data }
-                    commit('SET_TEMPERATURES', payload);
+                    if(data.status !== 404) {
+                        var payload = { city: city, data: data }
+                        commit('SET_TEMPERATURES', payload);
+                    }
                   })
                   .then(() => {
                     axios.post("api/temp", {city}, {headers: getHeader()})
                            .then(() => {
-                             console.log('Yeahh');
-                             commit('SET_TRIGGERED', false);
-                              //return state.userList;
+                             //
                             })
                            .catch((err) => {
                              console.log(err)
@@ -71,10 +86,13 @@ export const cityController = {
                            });
                   })
                   .then(() => {
-                    commit('SET_TRIGGERED', false);
-                    dispatch('loadChosenCities');
+                    if (state.chosenCityList[state.chosenCityList.length-1] === city) {
+                      commit('SET_TRIGGERED', false);
+                      dispatch('loadChosenCities');
+                    }
                   })
                   .catch((err) => {
+                     commit('SET_NOT_FOUND', city);
                      console.log(err)
                      throw err;
                  });
@@ -114,7 +132,6 @@ export const cityController = {
                   if(window.user.id === value.user_id)
                     temp_chosen_cities.push(value);
                 });
-                console.log(temp_chosen_cities)
                 commit('SET_CHOSEN_CITY_LIST', temp_chosen_cities);
               })
               .catch((err) => {
@@ -126,7 +143,6 @@ export const cityController = {
           var list = state.cityList;
           return axios.post("api/city", { list }, {headers: getHeader()})
               .then(() => {
-                console.log('haa')
                 //
               })
               .catch((err) => {
@@ -137,7 +153,6 @@ export const cityController = {
         loadCitiesFromDB: ({commit, state}) => {
           return axios.get("api/city", {headers: getHeader()})
               .then((data) => {
-                console.log(data);
                 commit('SET_CITY_LIST', data.data);
               })
               .catch((err) => {
@@ -155,8 +170,7 @@ export const cityController = {
             console.log({headers: getHeader()})
             return axios.post("api/temp", { current_item }, {headers: getHeader()})
                .then(() => {
-                 console.log('Yeahh')
-                  //return state.userList;
+                  //...
                 })
                .catch((err) => {
                  commit('REMOVE_CHOSEN_CITY_LIST', id);
@@ -171,8 +185,7 @@ export const cityController = {
           console.log(_.find(state.cityList, (c) => { return c.id == id; }));
           return axios.delete("api/temp/" + id, {headers: getHeader()})
              .then((data) => {
-               console.log('Yeahh')
-                //return state.userList;
+                //...
               })
              .catch((err) => {
                if (!_.find(state.chosenCityList, (c) => { return c.id == current_item.id; })) {
