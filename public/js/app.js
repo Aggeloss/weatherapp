@@ -53190,9 +53190,6 @@ var cityController = {
           chosenCityList: state.chosenCityList,
           item: current_item
         });
-        console.log({
-          headers: Object(_config__WEBPACK_IMPORTED_MODULE_1__["getHeader"])()
-        });
         return axios.post("api/temp", {
           current_item: current_item
         }, {

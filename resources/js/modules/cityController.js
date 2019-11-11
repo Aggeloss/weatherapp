@@ -167,7 +167,6 @@ export const cityController = {
               chosenCityList: state.chosenCityList,
               item: current_item
             });
-            console.log({headers: getHeader()})
             return axios.post("api/temp", { current_item }, {headers: getHeader()})
                .then(() => {
                   //...
