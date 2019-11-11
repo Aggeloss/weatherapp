@@ -76,6 +76,7 @@ export const cityController = {
                     }
                   })
                   .then(() => {
+                    console.log(city);
                     axios.post("api/temp", {city}, {headers: getHeader()})
                            .then(() => {
                              //
@@ -93,6 +94,10 @@ export const cityController = {
                   })
                   .catch((err) => {
                      commit('SET_NOT_FOUND', city);
+                     if (state.chosenCityList[state.chosenCityList.length-1] === city) {
+                       commit('SET_TRIGGERED', false);
+                       dispatch('loadChosenCities');
+                     }
                      console.log(err)
                      throw err;
                  });
@@ -127,9 +132,9 @@ export const cityController = {
                 var temp_chosen_cities = [];
                 var temp_temperatures = [];
                 _.forEach(data.data, function(value) {
-                  value['id'] = value['index'];
-                  delete value.index;
-                  if(window.user.id === value.user_id)
+                    console.log(value)
+                    value['id'] = value['index'];
+                    delete value.index;
                     temp_chosen_cities.push(value);
                 });
                 commit('SET_CHOSEN_CITY_LIST', temp_chosen_cities);

@@ -53082,6 +53082,7 @@ var cityController = {
             commit('SET_TEMPERATURES', payload);
           }
         }).then(function () {
+          console.log(city);
           axios.post("api/temp", {
             city: city
           }, {
@@ -53098,6 +53099,12 @@ var cityController = {
           }
         })["catch"](function (err) {
           commit('SET_NOT_FOUND', city);
+
+          if (state.chosenCityList[state.chosenCityList.length - 1] === city) {
+            commit('SET_TRIGGERED', false);
+            dispatch('loadChosenCities');
+          }
+
           console.log(err);
           throw err;
         });
@@ -53138,9 +53145,10 @@ var cityController = {
         var temp_temperatures = [];
 
         _.forEach(data.data, function (value) {
+          console.log(value);
           value['id'] = value['index'];
           delete value.index;
-          if (window.user.id === value.user_id) temp_chosen_cities.push(value);
+          temp_chosen_cities.push(value);
         });
 
         commit('SET_CHOSEN_CITY_LIST', temp_chosen_cities);
