@@ -24,6 +24,7 @@ class TemperatureController extends Controller
     public function index()
     {
         $chosen_city = DB::table('chosen_cities')->where('user_id', Auth::id())->get();
+        
         $temp_chosen_cities = [];
         $chosen_cities = [];
         $temperature_list = [];
@@ -52,7 +53,8 @@ class TemperatureController extends Controller
           if (count($avg_temp_numbers) != 0)
             $avg_temp = round(array_sum($avg_temp_numbers) / count($avg_temp_numbers));
 
-          $last_temp = $temperature_list[sizeof($temperature_list)-1]['last_temp'];
+          if (count($temperature_list) != 0)
+            $last_temp = $temperature_list[sizeof($temperature_list)-1]['last_temp'];
 
           if ($ct->user_id==Auth::id()) {
             $temp_chosen_cities['user_id'] = $ct->user_id;

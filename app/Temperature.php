@@ -13,6 +13,6 @@ class Temperature extends Model
   //relationships..
   public function city()
   {
-      return $this->belongsToMany('App\City');
+      return $this->belongsToMany('App\ChosenCity');
   }
 }

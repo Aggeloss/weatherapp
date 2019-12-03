@@ -63,45 +63,47 @@ export const cityController = {
     },
     actions: {
         temperatureInfo: ({commit, dispatch, state}, payload) => {
-          commit('SET_TRIGGERED', true);
-          _.forEach(payload.chosenCities, function(city) {
-            payload.http.get('https://api.openweathermap.org/data/2.5/weather?q=' + city.capital + ',' + city.alpha2Code + '&APPID=6e70b86f745e5e3964cd165349029ec9', {
-                    "Access-Control-Allow-Origin": "*",
-                    "Content-Type": "application/json"
-                  })
-                  .then((data) => {
-                    if(data.status !== 404) {
-                        var payload = { city: city, data: data }
-                        commit('SET_TEMPERATURES', payload);
-                    }
-                  })
-                  .then(() => {
-                    console.log(city);
-                    axios.post("api/temp", {city}, {headers: getHeader()})
-                           .then(() => {
-                             //
-                            })
-                           .catch((err) => {
-                             console.log(err)
-                             throw err;
-                           });
-                  })
-                  .then(() => {
-                    if (state.chosenCityList[state.chosenCityList.length-1] === city) {
-                      commit('SET_TRIGGERED', false);
-                      dispatch('loadChosenCities');
-                    }
-                  })
-                  .catch((err) => {
-                     commit('SET_NOT_FOUND', city);
-                     if (state.chosenCityList[state.chosenCityList.length-1] === city) {
-                       commit('SET_TRIGGERED', false);
-                       dispatch('loadChosenCities');
-                     }
-                     console.log(err)
-                     throw err;
-                 });
-              });
+          var counter = 0;
+          if (payload.chosenCities.length !== 0) {
+            commit('SET_TRIGGERED', true);
+            _.forEach(payload.chosenCities, function(city) {
+              payload.http.get('https://api.openweathermap.org/data/2.5/weather?q=' + city.capital + ',' + city.alpha2Code + '&APPID=6e70b86f745e5e3964cd165349029ec9', {
+                      "Access-Control-Allow-Origin": "*",
+                      "Content-Type": "application/json"
+                    })
+                    .then((data) => {
+                      if(data.status !== 404) {
+                          var payload = { city: city, data: data }
+                          commit('SET_TEMPERATURES', payload);
+                      }
+                    })
+                    .then(() => {
+                      return axios.post("api/temp", {city}, {headers: getHeader()})
+                             .then(() => {
+                               //
+                              })
+                             .catch((err) => {
+                               console.log(err)
+                               throw err;
+                             });
+                    })
+                    .then(() => {
+                      if (state.chosenCityList[state.chosenCityList.length-1] === city) {
+                        commit('SET_TRIGGERED', false);
+                        dispatch('loadChosenCities');
+                      }
+                    })
+                    .catch((err) => {
+                       commit('SET_NOT_FOUND', city);
+                       if (state.chosenCityList[state.chosenCityList.length-1] === city) {
+                         commit('SET_TRIGGERED', false);
+                         dispatch('loadChosenCities');
+                       }
+                       console.log(err)
+                       throw err;
+                   });
+                });
+              }
         },
         loadCities: ({commit, state}, http) => {
           return http.get("https://restcountries.eu/rest/v2/all", {

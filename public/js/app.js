@@ -53067,48 +53067,51 @@ var cityController = {
       var commit = _ref.commit,
           dispatch = _ref.dispatch,
           state = _ref.state;
-      commit('SET_TRIGGERED', true);
+      var counter = 0;
 
-      _.forEach(payload.chosenCities, function (city) {
-        payload.http.get('https://api.openweathermap.org/data/2.5/weather?q=' + city.capital + ',' + city.alpha2Code + '&APPID=6e70b86f745e5e3964cd165349029ec9', {
-          "Access-Control-Allow-Origin": "*",
-          "Content-Type": "application/json"
-        }).then(function (data) {
-          if (data.status !== 404) {
-            var payload = {
-              city: city,
-              data: data
-            };
-            commit('SET_TEMPERATURES', payload);
-          }
-        }).then(function () {
-          console.log(city);
-          axios.post("api/temp", {
-            city: city
-          }, {
-            headers: Object(_config__WEBPACK_IMPORTED_MODULE_1__["getHeader"])()
-          }).then(function () {//
+      if (payload.chosenCities.length !== 0) {
+        commit('SET_TRIGGERED', true);
+
+        _.forEach(payload.chosenCities, function (city) {
+          payload.http.get('https://api.openweathermap.org/data/2.5/weather?q=' + city.capital + ',' + city.alpha2Code + '&APPID=6e70b86f745e5e3964cd165349029ec9', {
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": "application/json"
+          }).then(function (data) {
+            if (data.status !== 404) {
+              var payload = {
+                city: city,
+                data: data
+              };
+              commit('SET_TEMPERATURES', payload);
+            }
+          }).then(function () {
+            return axios.post("api/temp", {
+              city: city
+            }, {
+              headers: Object(_config__WEBPACK_IMPORTED_MODULE_1__["getHeader"])()
+            }).then(function () {//
+            })["catch"](function (err) {
+              console.log(err);
+              throw err;
+            });
+          }).then(function () {
+            if (state.chosenCityList[state.chosenCityList.length - 1] === city) {
+              commit('SET_TRIGGERED', false);
+              dispatch('loadChosenCities');
+            }
           })["catch"](function (err) {
+            commit('SET_NOT_FOUND', city);
+
+            if (state.chosenCityList[state.chosenCityList.length - 1] === city) {
+              commit('SET_TRIGGERED', false);
+              dispatch('loadChosenCities');
+            }
+
             console.log(err);
             throw err;
           });
-        }).then(function () {
-          if (state.chosenCityList[state.chosenCityList.length - 1] === city) {
-            commit('SET_TRIGGERED', false);
-            dispatch('loadChosenCities');
-          }
-        })["catch"](function (err) {
-          commit('SET_NOT_FOUND', city);
-
-          if (state.chosenCityList[state.chosenCityList.length - 1] === city) {
-            commit('SET_TRIGGERED', false);
-            dispatch('loadChosenCities');
-          }
-
-          console.log(err);
-          throw err;
         });
-      });
+      }
     },
     loadCities: function loadCities(_ref2, http) {
       var commit = _ref2.commit,
